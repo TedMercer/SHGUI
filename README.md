@@ -1,6 +1,6 @@
 # SHGUI - Second Harmonic Generation Analysis Tool
 
-SHGUI is a desktop application developed to facilitate the analysis of Second Harmonic Generation (SHG) data. It provides a graphical interface that allows users to interactively load, visualize, analyze, and save SHG data. The tool is built using Python and PyQt5 for the graphical interface and integrates the functionality of the `DataPlotter` analysis class.
+SHGUI is a desktop application/excutable python script developed to facilitate the analysis of Second Harmonic Generation (SHG) data. It provides a graphical interface that allows users to interactively load, visualize, analyze, and save SHG data. The tool is built using Python and PyQt5 for the graphical interface and integrates the functionality of the `DataPlotter` analysis class.
 
 ## Features
 - **Load SHG Data**: Easily load SHG data files (.tiff, .txt, .csv) for analysis.
