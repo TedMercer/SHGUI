@@ -341,7 +341,7 @@ class DataPlotter:
         fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
         num_bins = int(360 / self.bin)
         angles = np.linspace(0, 2 * np.pi, num_bins)
-        ax.set_title("Averaged Intensity Over Circle Radii with Binning - Background Subtracted")
+        ax.set_title("Averaged Intensity Over Circle Radii with Binning \n Background Subtracted")
         ax.plot(angles, self.avg_intensities_sub, **kwargs)
         plt.show()
 

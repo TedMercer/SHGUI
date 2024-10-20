@@ -132,9 +132,18 @@ class SHGAnalysisGUI(QMainWindow):
         main_layout.addWidget(calc_intensity_btn)
 
         # Plot Polar Button
+        plot_polar_layout = QHBoxLayout()
         plot_polar_btn = QPushButton("Plot Polar", self)
         plot_polar_btn.clicked.connect(self.plot_polar)
-        main_layout.addWidget(plot_polar_btn)
+        plot_polar_layout.addWidget(plot_polar_btn)
+
+        # **kwargs input for polar plot
+        kwargs_label = QLabel("Plot kwargs:")
+        plot_polar_layout.addWidget(kwargs_label)
+        self.kwargs_input = QLineEdit(self)
+        self.kwargs_input.setPlaceholderText("e.g., markersize=5, linestyle='--'")
+        plot_polar_layout.addWidget(self.kwargs_input)
+        main_layout.addLayout(plot_polar_layout)
 
         # Save Results Button
         save_btn = QPushButton("Save Results", self)
@@ -293,7 +302,15 @@ class SHGAnalysisGUI(QMainWindow):
 
     def plot_polar(self):
         try:
-            self.data_plotter.polar_plot()
+            kwargs_str = self.kwargs_input.text()
+            kwargs = {}
+            if kwargs_str:
+                try:
+                    kwargs = eval(f'dict({kwargs_str})')
+                except Exception as e:
+                    QMessageBox.warning(self, "Warning", f"Invalid kwargs format: {e}. Please try again.")
+                    return
+            self.data_plotter.polar_plot(**kwargs)
             self.status_label.setText("Status: Polar plot generated")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"An error occurred while plotting polar data: {e}")
@@ -305,7 +322,6 @@ class SHGAnalysisGUI(QMainWindow):
             if folder_name:
                 description, ok = QInputDialog.getText(self, "Description", "Enter a description for the saved data:")
                 if ok:
-                    
                     for bin_value in self.bin_values:
                         self.data_plotter.calculate_average_intensity(bin_value, plot = False)
                         self.data_plotter.save_txt(folder_name, f"{description}_bin{bin_value}")
