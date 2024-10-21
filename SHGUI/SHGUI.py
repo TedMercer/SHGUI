@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QPushButton, QLabel, QFileDialog, QVBoxLayout, 
-                             QWidget, QHBoxLayout, QLineEdit, QMessageBox, QListWidget, QInputDialog, QComboBox, QSlider, QToolBar)
+                             QWidget, QHBoxLayout, QLineEdit, QMessageBox, QListWidget, QInputDialog, QComboBox, QSlider, QToolBar, QCheckBox)
 from PyQt5.QtCore import Qt
 import sys
 import matplotlib.pyplot as plt
@@ -15,16 +15,17 @@ class SHGAnalysisGUI(QMainWindow):
         self.setWindowTitle("SHGUI")
         self.setGeometry(100, 100, 800, 600)
         
-        self.data_plotter = DataPlotter()  
+        self.data_plotter = None  
         self.folder_path = ""
         self.vmin = 400
         self.vmax = 1000
         self.cmap = 'viridis'
         self.zoom_size = 150
-        self.background_selected = False
-        self.roi_selected = False
+        
+        
         self.bin_values = [] 
         self.is_dark_mode = False  
+        self.data_objects = []  # Store data objects for comparison
         
         self.initUI()
 
@@ -132,17 +133,16 @@ class SHGAnalysisGUI(QMainWindow):
         main_layout.addWidget(calc_intensity_btn)
 
         # Plot Polar Button
-        plot_polar_layout = QHBoxLayout()
+        plot_polar_layout = QVBoxLayout()
         plot_polar_btn = QPushButton("Plot Polar", self)
         plot_polar_btn.clicked.connect(self.plot_polar)
         plot_polar_layout.addWidget(plot_polar_btn)
 
-        # **kwargs input for polar plot
-        kwargs_label = QLabel("Plot kwargs:")
-        plot_polar_layout.addWidget(kwargs_label)
-        self.kwargs_input = QLineEdit(self)
-        self.kwargs_input.setPlaceholderText("e.g., markersize=5, linestyle='--'")
-        plot_polar_layout.addWidget(self.kwargs_input)
+        # **kwargs input for polar plot for each data object
+        self.kwargs_inputs = []
+        self.checkboxes = []
+        self.data_display_layout = QVBoxLayout()
+        plot_polar_layout.addLayout(self.data_display_layout)
         main_layout.addLayout(plot_polar_layout)
 
         # Save Results Button
@@ -193,7 +193,11 @@ class SHGAnalysisGUI(QMainWindow):
             if selected_item:
                 file_name = selected_item.text()
                 file_path = os.path.join(self.folder_path, file_name)
+                self.data_plotter = DataPlotter()
+                self.data_plotter.background_selected = False
+                self.data_plotter.roi_selected = False
                 self.data_plotter.load_data(file_path)
+                self.data_plotter.file_path = os.path.basename(file_path)  # Store file name in data_plotter
                 self.status_label.setText(f"Status: Loaded data from {file_path}")
             else:
                 QMessageBox.warning(self, "Warning", "Please select a file from the list.")
@@ -256,21 +260,21 @@ class SHGAnalysisGUI(QMainWindow):
 
     def select_background(self):
         try:
-            if self.background_selected:
+            if self.data_plotter and hasattr(self.data_plotter, 'background_selected') and self.data_plotter.background_selected:
                 reply = QMessageBox.question(self, 'Overwrite Background', "A background is already selected. Do you want to overwrite it?", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
                 if reply == QMessageBox.No:
                     self.status_label.setText("Status: Background selection cancelled")
                     return
             self.status_label.setText("Status: Selecting background - Use Enter to confirm, 'e' to stop")
             self.data_plotter.background()
-            self.background_selected = True
+            self.data_plotter.background_selected = True
             self.status_label.setText("Status: Background selected")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"An error occurred while selecting background: {e}")
 
     def select_roi(self):
         try:
-            if self.roi_selected:
+            if self.data_plotter and hasattr(self.data_plotter, 'roi_selected') and self.data_plotter.roi_selected:
                 reply = QMessageBox.question(self, 'Overwrite ROI', "An ROI is already selected. Do you want to overwrite it?", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
                 if reply == QMessageBox.No:
                     self.status_label.setText("Status: ROI selection cancelled")
@@ -285,7 +289,7 @@ class SHGAnalysisGUI(QMainWindow):
                 self.data_plotter.stage = 0
             self.status_label.setText("Status: Selecting ROI interactively with zoom size = {}".format(self.zoom_size))
             self.data_plotter.interactive_circle_selection(zoom_size=self.zoom_size)
-            self.roi_selected = True
+            self.data_plotter.roi_selected = True
             self.status_label.setText("Status: ROI selected")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"An error occurred while selecting ROI: {e}")
@@ -296,21 +300,42 @@ class SHGAnalysisGUI(QMainWindow):
             if ok:
                 self.bin_values.append(bin_size)  # Store the selected bin value
                 self.data_plotter.calculate_average_intensity(bin_size)
+                self.data_objects.append((self.data_plotter.avg_intensities_sub.copy(), self.data_plotter.file_path))  # Save data for comparison
+                self.add_data_display(file_name=os.path.basename(self.data_plotter.file_path))
                 self.status_label.setText(f"Status: Average intensity calculated with bin size {bin_size}")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"An error occurred while calculating intensity: {e}")
 
+    def add_data_display(self, file_name):
+        checkbox = QCheckBox(file_name, self)
+        self.checkboxes.append(checkbox)
+        self.data_display_layout.addWidget(checkbox)
+
+        kwargs_input = QLineEdit(self)
+        kwargs_input.setPlaceholderText("e.g., markersize=5, linestyle='--'")
+        self.kwargs_inputs.append(kwargs_input)
+        self.data_display_layout.addWidget(kwargs_input)
+
     def plot_polar(self):
         try:
-            kwargs_str = self.kwargs_input.text()
-            kwargs = {}
-            if kwargs_str:
-                try:
-                    kwargs = eval(f'dict({kwargs_str})')
-                except Exception as e:
-                    QMessageBox.warning(self, "Warning", f"Invalid kwargs format: {e}. Please try again.")
-                    return
-            self.data_plotter.polar_plot(**kwargs)
+            fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
+            ax.set_title("Comparison of Averaged Intensity Over Circle Radii with Binning - Background Subtracted")
+            for i, checkbox in enumerate(self.checkboxes):
+                if checkbox.isChecked():
+                    kwargs_str = self.kwargs_inputs[i].text()
+                    kwargs = {}
+                    if kwargs_str:
+                        try:
+                            kwargs = eval(f'dict({kwargs_str})')
+                        except Exception as e:
+                            QMessageBox.warning(self, "Warning", f"Invalid kwargs format for {checkbox.text()}: {e}. Please try again.")
+                            continue
+                    avg_intensities = self.data_objects[i][0]
+                    num_bins = len(avg_intensities)
+                    angles = np.linspace(0, 2 * np.pi, num_bins, endpoint=False)
+                    ax.plot(angles, avg_intensities, label=checkbox.text(), **kwargs)
+            ax.legend()
+            plt.show()
             self.status_label.setText("Status: Polar plot generated")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"An error occurred while plotting polar data: {e}")
