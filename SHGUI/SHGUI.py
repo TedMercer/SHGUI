@@ -131,11 +131,14 @@ class SHGAnalysisGUI(QMainWindow):
         calc_intensity_btn.clicked.connect(self.calculate_intensity)
         main_layout.addWidget(calc_intensity_btn)
 
-        # Plot Polar Button
+        # Plot Polar Button Layout
         plot_polar_layout = QVBoxLayout()
+        self.norm_checkbox = QCheckBox("Normalize Polar Plot", self)
+        plot_polar_layout.addWidget(self.norm_checkbox)
         plot_polar_btn = QPushButton("Plot Polar", self)
         plot_polar_btn.clicked.connect(self.plot_polar)
         plot_polar_layout.addWidget(plot_polar_btn)
+        main_layout.addLayout(plot_polar_layout)
 
         # **kwargs input for polar plot for each data object
         self.kwargs_inputs = []
@@ -204,7 +207,7 @@ class SHGAnalysisGUI(QMainWindow):
                 self.data_plotter.background_selected = False
                 self.data_plotter.roi_selected = False
                 self.data_plotter.load_data(file_path)
-                self.data_plotter.file_path = os.path.basename(file_path)  
+                self.data_plotter.file_path = os.path.basename(file_path)  # Store file name in data_plotter
                 self.status_label.setText(f"Status: Loaded data from {file_path}")
             else:
                 QMessageBox.warning(self, "Warning", "Please select a file from the list.")
@@ -335,7 +338,8 @@ class SHGAnalysisGUI(QMainWindow):
     def plot_polar(self):
         try:
             fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
-            ax.set_title("Polar SHG Plot \n Background Subtracted")
+            ax.set_title("SHG Polar Plot \n Background Subtracted")
+            norm = self.norm_checkbox.isChecked()
             for i, checkbox in enumerate(self.checkboxes):
                 if checkbox.isChecked():
                     kwargs_str = self.kwargs_inputs[i].text()
@@ -349,7 +353,10 @@ class SHGAnalysisGUI(QMainWindow):
                     avg_intensities = self.data_objects[i][0]
                     num_bins = len(avg_intensities)
                     angles = np.linspace(0, 2 * np.pi, num_bins, endpoint=False)
-                    ax.plot(angles, avg_intensities, label=checkbox.text(), **kwargs)
+                    if norm:
+                        ax.plot(angles, avg_intensities / np.max(avg_intensities), label=checkbox.text(), **kwargs)
+                    else:
+                        ax.plot(angles, avg_intensities, label=checkbox.text(), **kwargs)
             ax.legend()
             plt.show()
             self.status_label.setText("Status: Polar plot generated")

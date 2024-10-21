@@ -332,7 +332,7 @@ class DataPlotter:
         plt.grid(True)
         plt.show()
 
-    def polar_plot(self, **kwargs):
+    def polar_plot(self, norm = False, **kwargs):
         """Plot the data in polar coordinates."""
         if self.average_intensities_raw is None:
             raise ValueError("Two circles must be defined before plotting in polar coordinates. AND calculate average intensity.")
@@ -342,7 +342,10 @@ class DataPlotter:
         num_bins = int(360 / self.bin)
         angles = np.linspace(0, 2 * np.pi, num_bins)
         ax.set_title("Averaged Intensity Over Circle Radii with Binning \n Background Subtracted")
-        ax.plot(angles, self.avg_intensities_sub, **kwargs)
+        if norm == True:
+            ax.plot(angles, self.avg_intensities_sub/np.max(self.avg_intensities_sub), **kwargs)
+        else:
+            ax.plot(angles, self.avg_intensities_sub, **kwargs)
         plt.show()
 
     def save_txt(self, folder_path: str, description: str):
