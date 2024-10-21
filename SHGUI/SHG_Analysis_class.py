@@ -99,44 +99,40 @@ class DataPlotter:
         def on_key(event):
             """Handle key presses to confirm selection or exit."""
             if event.key == 'enter':
-                rect = ax.patches[-1]  # Get the last drawn rectangle
+                rect = ax.patches[-1]  
                 extent = rect.get_bbox().extents
                 x1, y1, x2, y2 = map(int, extent)
                 selected_region = self.data[y1:y2, x1:x2]
                 background_intensity = np.mean(selected_region)
                 self.background_values.append(background_intensity)
 
-                if len(self.background_values) > 1:  # Update the average background
+                if len(self.background_values) > 1:  
                     updated_average = np.mean(self.background_values)
                 else:
                     updated_average = background_intensity
 
-                rect.set_edgecolor('green')  # Confirm selection
+                rect.set_edgecolor('green')  
                 plt.title(f"Average Background: {updated_average:.2f}. Continue selecting or press 'e' to exit.")
                 plt.draw()
 
-            elif event.key == 'e':  # Exit and make plot static
+            elif event.key == 'e':  
                 if self.background_values:
-                    self.bkg = np.mean(self.background_values)  # Calculate final average background
+                    self.bkg = np.mean(self.background_values)  
                 else:
                     self.bkg = 0
                 print(f"Final Average Background: {self.bkg:.2f}")
 
-                # Disconnect the RectangleSelector events
                 selector.disconnect_events()
                 fig.canvas.mpl_disconnect(key_event_id)
 
-                # Optionally set the selector to inactive (though disconnecting its events is more thorough)
                 selector.set_active(False)
 
                 plt.title(f"Final Average Background: {self.bkg:.2f} (Static)")
                 plt.draw()
 
-        # Initialize the selector
         selector = RectangleSelector(ax, onselect, useblit=True, button=[1],
                                     minspanx=5, minspany=5, spancoords='pixels', interactive=True)
 
-        # Store the ID of the key press event so it can be disconnected later
         key_event_id = fig.canvas.mpl_connect('key_press_event', on_key)
 
         plt.show()
@@ -318,7 +314,6 @@ class DataPlotter:
         self.avg_int_total = int_total
         self.avg_intensities_raw = intensities
         self.avg_intensities_sub = np.array(intensities) - background
-        # self.plot_intensities(angles[:-1], intensities)
         if plot == True:
             self.plot_intensities(angles[:-1], self.avg_intensities_sub, title = f"Integrated Intensity, ({self.bin} bins) \n Background Subtracted")  
 

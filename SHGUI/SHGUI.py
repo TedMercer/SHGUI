@@ -24,49 +24,41 @@ class SHGAnalysisGUI(QMainWindow):
         
         self.bin_values = [] 
         self.is_dark_mode = False  
-        self.data_objects = []  # Store data objects for comparison
+        self.data_objects = []  
         
         self.initUI()
 
     def initUI(self):
-        # Main widget and layout
         main_widget = QWidget(self)
         self.setCentralWidget(main_widget)
         main_layout = QVBoxLayout()
         main_widget.setLayout(main_layout)
 
-        # Add Toolbar for Dark/Light Mode Toggle
         toolbar = QToolBar("Toolbar", self)
         self.addToolBar(toolbar)
         toggle_mode_btn = QPushButton("Toggle Dark Mode", self)
         toggle_mode_btn.clicked.connect(self.toggle_mode)
         toolbar.addWidget(toggle_mode_btn)
 
-        # Select Folder Button
         select_folder_btn = QPushButton("Select Working Folder", self)
         select_folder_btn.clicked.connect(self.select_folder)
         main_layout.addWidget(select_folder_btn)
 
-        # Refresh Folder Button
         refresh_folder_btn = QPushButton("Refresh Folder Contents", self)
         refresh_folder_btn.clicked.connect(self.refresh_folder)
         main_layout.addWidget(refresh_folder_btn)
 
-        # File List Widget
         self.file_list_widget = QListWidget(self)
         main_layout.addWidget(self.file_list_widget)
 
-        # Load Data Button
         load_data_btn = QPushButton("Load Data", self)
         load_data_btn.clicked.connect(self.load_data)
         main_layout.addWidget(load_data_btn)
 
-        # Plot Data Button
         plot_data_btn = QPushButton("Plot Data", self)
         plot_data_btn.clicked.connect(self.plot_data)
         main_layout.addWidget(plot_data_btn)
 
-        # vmax and vmin adjustment widgets
         vmin_layout = QHBoxLayout()
         vmin_label = QLabel("vmin:")
         vmin_layout.addWidget(vmin_label)
@@ -95,7 +87,6 @@ class SHGAnalysisGUI(QMainWindow):
         vmax_layout.addWidget(self.vmax_input)
         main_layout.addLayout(vmax_layout)
 
-        # Colormap selection dropdown
         cmap_layout = QHBoxLayout()
         cmap_label = QLabel("Colormap:")
         cmap_layout.addWidget(cmap_label)
@@ -106,7 +97,6 @@ class SHGAnalysisGUI(QMainWindow):
         cmap_layout.addWidget(self.cmap_combo)
         main_layout.addLayout(cmap_layout)
 
-        # Zoom Size Input for ROI Selection
         zoom_layout = QHBoxLayout()
         zoom_label = QLabel("Zoom Size:")
         zoom_layout.addWidget(zoom_label)
@@ -116,22 +106,18 @@ class SHGAnalysisGUI(QMainWindow):
         zoom_layout.addWidget(self.zoom_input)
         main_layout.addLayout(zoom_layout)
 
-        # Background Selection Button
         background_btn = QPushButton("Select Background", self)
         background_btn.clicked.connect(self.select_background)
         main_layout.addWidget(background_btn)
 
-        # ROI Selection Button
         roi_btn = QPushButton("Select ROI (Interactive Circle)", self)
         roi_btn.clicked.connect(self.select_roi)
         main_layout.addWidget(roi_btn)
 
-        # Calculate Average Intensity Button
         calc_intensity_btn = QPushButton("Calculate Average Intensity", self)
         calc_intensity_btn.clicked.connect(self.calculate_intensity)
         main_layout.addWidget(calc_intensity_btn)
 
-        # Plot Polar Button Layout
         plot_polar_layout = QVBoxLayout()
         self.norm_checkbox = QCheckBox("Normalize Polar Plot", self)
         plot_polar_layout.addWidget(self.norm_checkbox)
@@ -140,27 +126,23 @@ class SHGAnalysisGUI(QMainWindow):
         plot_polar_layout.addWidget(plot_polar_btn)
         main_layout.addLayout(plot_polar_layout)
 
-        # **kwargs input for polar plot for each data object
         self.kwargs_inputs = []
         self.checkboxes = []
         self.data_display_layout = QVBoxLayout()
         plot_polar_layout.addLayout(self.data_display_layout)
         main_layout.addLayout(plot_polar_layout)
 
-        # Save Results Button
         save_results_layout = QVBoxLayout()
         save_btn = QPushButton("Save Results", self)
         save_btn.clicked.connect(self.save_results)
         save_results_layout.addWidget(save_btn)
 
-        # Save options for each data object
         self.save_checkboxes = []
         self.description_inputs = []
         self.save_display_layout = QVBoxLayout()
         save_results_layout.addLayout(self.save_display_layout)
         main_layout.addLayout(save_results_layout)
 
-        # Status Label
         self.status_label = QLabel("Status: Ready", self)
         main_layout.addWidget(self.status_label)
 
