@@ -68,9 +68,14 @@ Next the user will be prompted to select the working directory and load in the f
 Following the inital visualization the user then will be prompted to select the background signal and ROI. First the background which is done by selecting a region and pressing the "Enter" or "return" key based on keyboard config. When all the relevant regions are selected the user can press "e" to exit which will display the final background value on the static plot. Here you see the 3 prompts given and see how the user did not confirm the last region of the third plot as it's border remained red. 
 ![SHGUI bkg1](Images/image3.png)
 ![SHGUI bkg2](Images/image4.png)
-![SHGUI bkg3](Images/image5.png)
-Selecting the ROI The user must first select the center of the SHG signal. This center will then be zommed on by the set zoom value. Confirming the click is with the left click to select and right click to confirm. The remaining processes are explained above.
-
+Selecting the ROI The user must first select the center of the SHG signal. This center will then be zommed on by the set zoom value. Confirming the click is with the left click to select and right click to confirm. Process is illustrated with the below figure.
+![SHGUI ROI](Images/image5.png)
+Following the user should press the "Calculate Average Intensity" button which will prompt a bin size (which is the bin size in degrees the user wishes to bin the data by -- this will be saved in the .txt file). After this it will display a x,y plot of the integrated data with the background subtracted and binned. This will also update the available data to be plotted and saved.
+![SHGUI Int](Images/image6.png)
+Following this the user can do a polar plot of the data and compare data sets easily by selecting then in the list.
+![SHGUI polar](Images/image7.png)
+Once complete all the data can then be saved to a txt file for further analysis.
+<hr>
 
 ## DataPlotter Analysis Class
 The `DataPlotter` class is responsible for the core analysis functionalities. Below are the methods available:
