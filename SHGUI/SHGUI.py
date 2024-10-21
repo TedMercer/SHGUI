@@ -319,7 +319,7 @@ class SHGAnalysisGUI(QMainWindow):
     def plot_polar(self):
         try:
             fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
-            ax.set_title("Comparison of Averaged Intensity Over Circle Radii with Binning - Background Subtracted")
+            ax.set_title("Comparison of Averaged Intensity Over Circle Radii with Binning \n Background Subtracted")
             for i, checkbox in enumerate(self.checkboxes):
                 if checkbox.isChecked():
                     kwargs_str = self.kwargs_inputs[i].text()
