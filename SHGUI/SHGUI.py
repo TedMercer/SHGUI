@@ -22,7 +22,6 @@ class SHGAnalysisGUI(QMainWindow):
         self.cmap = 'viridis'
         self.zoom_size = 150
         
-        
         self.bin_values = [] 
         self.is_dark_mode = False  
         self.data_objects = []  # Store data objects for comparison
@@ -146,9 +145,17 @@ class SHGAnalysisGUI(QMainWindow):
         main_layout.addLayout(plot_polar_layout)
 
         # Save Results Button
+        save_results_layout = QVBoxLayout()
         save_btn = QPushButton("Save Results", self)
         save_btn.clicked.connect(self.save_results)
-        main_layout.addWidget(save_btn)
+        save_results_layout.addWidget(save_btn)
+
+        # Save options for each data object
+        self.save_checkboxes = []
+        self.description_inputs = []
+        self.save_display_layout = QVBoxLayout()
+        save_results_layout.addLayout(self.save_display_layout)
+        main_layout.addLayout(save_results_layout)
 
         # Status Label
         self.status_label = QLabel("Status: Ready", self)
@@ -197,7 +204,7 @@ class SHGAnalysisGUI(QMainWindow):
                 self.data_plotter.background_selected = False
                 self.data_plotter.roi_selected = False
                 self.data_plotter.load_data(file_path)
-                self.data_plotter.file_path = os.path.basename(file_path)  # Store file name in data_plotter
+                self.data_plotter.file_path = os.path.basename(file_path)  
                 self.status_label.setText(f"Status: Loaded data from {file_path}")
             else:
                 QMessageBox.warning(self, "Warning", "Please select a file from the list.")
@@ -316,10 +323,19 @@ class SHGAnalysisGUI(QMainWindow):
         self.kwargs_inputs.append(kwargs_input)
         self.data_display_layout.addWidget(kwargs_input)
 
+        save_checkbox = QCheckBox(file_name, self)
+        self.save_checkboxes.append(save_checkbox)
+        self.save_display_layout.addWidget(save_checkbox)
+
+        description_input = QLineEdit(self)
+        description_input.setPlaceholderText("Enter description for saving this file")
+        self.description_inputs.append(description_input)
+        self.save_display_layout.addWidget(description_input)
+
     def plot_polar(self):
         try:
             fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
-            ax.set_title("Comparison of Averaged Intensity Over Circle Radii with Binning \n Background Subtracted")
+            ax.set_title("Polar SHG Plot \n Background Subtracted")
             for i, checkbox in enumerate(self.checkboxes):
                 if checkbox.isChecked():
                     kwargs_str = self.kwargs_inputs[i].text()
@@ -345,12 +361,16 @@ class SHGAnalysisGUI(QMainWindow):
             options = QFileDialog.Options()
             folder_name = QFileDialog.getExistingDirectory(self, "Select Folder to Save Results", options=options)
             if folder_name:
-                description, ok = QInputDialog.getText(self, "Description", "Enter a description for the saved data:")
-                if ok:
-                    for bin_value in self.bin_values:
-                        self.data_plotter.calculate_average_intensity(bin_value, plot = False)
-                        self.data_plotter.save_txt(folder_name, f"{description}_bin{bin_value}")
-                    self.status_label.setText(f"Status: Results saved in {folder_name}")
+                for i, checkbox in enumerate(self.save_checkboxes):
+                    if checkbox.isChecked():
+                        description = self.description_inputs[i].text()
+                        if not description:
+                            QMessageBox.warning(self, "Warning", f"Please enter a description for {checkbox.text()} before saving.")
+                            continue
+                        avg_intensities = self.data_objects[i][0]
+                        self.data_plotter.avg_intensities_sub = avg_intensities
+                        self.data_plotter.save_txt(folder_name, f"{description}_{checkbox.text()}")
+                self.status_label.setText(f"Status: Results saved in {folder_name}")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"An error occurred while saving results: {e}")
 
