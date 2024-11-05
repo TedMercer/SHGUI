@@ -171,7 +171,7 @@ class SHGAnalysisGUI(QMainWindow):
         try:
             if self.folder_path:
                 self.file_list_widget.clear()
-                files = [f for f in os.listdir(self.folder_path) if f.endswith(('.tiff', '.txt', '.csv'))]
+                files = [f for f in os.listdir(self.folder_path) if f.endswith(('.tiff', '.txt', '.csv', '.sif'))]
                 self.file_list_widget.addItems(files)
                 self.status_label.setText("Status: Folder contents refreshed")
             else:
@@ -189,7 +189,7 @@ class SHGAnalysisGUI(QMainWindow):
                 self.data_plotter.background_selected = False
                 self.data_plotter.roi_selected = False
                 self.data_plotter.load_data(file_path)
-                self.data_plotter.file_path = os.path.basename(file_path)  # Store file name in data_plotter
+                self.data_plotter.file_path = os.path.basename(file_path)
                 self.status_label.setText(f"Status: Loaded data from {file_path}")
             else:
                 QMessageBox.warning(self, "Warning", "Please select a file from the list.")

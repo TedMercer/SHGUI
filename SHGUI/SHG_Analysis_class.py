@@ -3,7 +3,7 @@ Created by Teddy Mercer
 Date: 2021-07-07
 Description: This class is designed to handle the analysis of Second Harmonic Generation (SHG) data.
 
-The class DataPlotter is designed to load and plot data from various file formats (e.g., .tiff, .txt, .csv).
+The class DataPlotter is designed to load and plot data from various file formats (e.g., .tiff, .txt, .csv, .sif).
 It provides methods to plot the data, zoom in on a region of interest, and select circular regions for analysis.
 The calculate_average_intensity method calculates the average intensity along a circular path defined by two radii.
 '''
@@ -15,6 +15,8 @@ from scipy.ndimage import zoom
 from skimage.io import imread
 import pandas as pd 
 import os
+import sif_parser
+
 
 class DataPlotter:
     def __init__(self):
@@ -55,7 +57,7 @@ class DataPlotter:
         self.bin = 0
 
     def load_data(self, file_path: str):
-        """Load data from .tiff, .txt, or .csv files."""
+        """Load data from .tiff, .txt, .csv, or .sif files."""
         if file_path.endswith('.tiff'):
             self.data = imread(file_path)
         elif file_path.endswith('.txt'):
@@ -64,23 +66,48 @@ class DataPlotter:
             df = pd.read_csv(file_path)
             self.data = df.to_numpy()
             self.data = np.nan_to_num(self.data.astype(np.float64), nan=0)
+        elif file_path.endswith('.sif'):
+            sif_data, info = sif_parser.np_open(file_path)
+            self.environment = info
+            data_2d = np.squeeze(sif_data)
+            self.data = data_2d
+            keys = list(self.environment.keys())
+            values = list(self.environment.values())
+            fig,ax = plt.subplots(figsize = (10, len(keys) * 0.3))
+            ax.axis('off')
+            table_data = [[key, str(value)] for key, value in self.environment.items()]
+            table = ax.table(cellText = table_data, colLabels = ['Key', 'Value'], loc = 'center', cellLoc = 'left',colWidths = [0.3, 0.7])
+            table.auto_set_font_size(False)
+            table.set_fontsize(10)
+            table.auto_set_column_width([0,1])
+            plt.text(0.5, 1.05, f'Metadata from Andor CCD - {os.path.basename(file_path)}', ha='center', va='center', fontsize=14, weight='bold', transform=ax.transAxes)
+            plt.tight_layout()
+            plt.show()
         else:
-            raise ValueError("Unsupported file type. Use .tiff, .txt, or .csv")
-
-    def plot_data(self, vmin=None, vmax=None, cmap = None):
+            raise ValueError("Unsupported file type. Use .tiff, .txt, .csv, or .sif")
+    
+    def plot_data(self, vmin=None, vmax=None, cmap=None):
         """Plot the data with an optional color map and intensity range."""
         if vmin is not None:
             self.vmin = vmin
         if vmax is not None:
             self.vmax = vmax
-        if cmap is not None: 
+        if cmap is not None:
             self.cmap = cmap
+
+        if self.data is None:
+            raise ValueError("No data loaded to plot.")
+        
+        # Check if data is 2D and reshape if necessary
+        if len(self.data.shape) != 2:
+            raise ValueError(f"Invalid data shape {self.data.shape} for plotting. Expected a 2D array.")
 
         plt.figure(figsize=(6, 6))
         plt.imshow(self.data, cmap=self.cmap, vmin=self.vmin, vmax=self.vmax)
         plt.title('Data Plot')
         plt.colorbar()
-        plt.show()
+        plt.show()  
+
 
     def background(self):
         """Interactively select regions to calculate and update the average background continuously."""

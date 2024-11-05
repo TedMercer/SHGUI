@@ -3,7 +3,7 @@
 SHGUI is a desktop application/excutable python script developed to facilitate the analysis of Second Harmonic Generation (SHG) data. It provides a graphical interface that allows users to interactively load, visualize, analyze, and save SHG data. The tool is built using Python and PyQt5 for the graphical interface and integrates the functionality of the `DataPlotter` analysis class.
 
 ## Features
-- **Load SHG Data**: Easily load SHG data files (.tiff, .txt, .csv) for analysis.
+- **Load SHG Data**: Easily load SHG data files (.tiff, .txt, .csv, .sif) for analysis.
 - **Interactive Data Visualization**: Plot data with customizable options for color map (`cmap`), intensity range (`vmin`, `vmax`), and zoom size.
 - **Background and ROI Selection**: Select background and region of interest (ROI) interactively with the GUI.
 - **Calculate Average Intensity**: Perform bin size selection and ROI intensity integration.
@@ -21,10 +21,11 @@ SHGUI is a desktop application/excutable python script developed to facilitate t
 - Pandas
 - Scipy
 - Skimage
+- sif_parser
 
 To install the necessary dependencies, run:
 ```sh
-pip install PyQt5 matplotlib numpy pandas scipy skimage
+pip install PyQt5 matplotlib numpy pandas scipy skimage sif_parser
 ```
 
 ### Installation
