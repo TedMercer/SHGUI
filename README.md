@@ -78,6 +78,51 @@ Following this the user can do a polar plot of the data and compare data sets ea
 Once complete all the data can then be saved to a txt file for further analysis.
 <hr>
 
+## Creating a Desktop shortcut
+The repo contains a folder titled: **Desktop_shortcuts** this has two different files. One for windows and one for mac/linux. The windows usage is straight forward and requires the user to adjust the path in the folder to their path to the folder. Then if they wish to move it to their direct desktop it becomes then an executable application that can be clicked on. <br>
+Macos and linux become more complex....
+
+**Step 1:** Make the .sh File Executable
+Open a Terminal and navigate to the directory where your .sh file is located (if it's on the desktop, run cd ~/Desktop).
+
+Run this command to make the .sh file executable:
+
+```bash
+chmod +x your_script.sh
+Replace your_script.sh with the actual name of your script.
+```
+
+**Step 2:** Create a Desktop Shortcut (macOS and Linux)
+*For macOS:*
+Open Automator (found in Applications > Utilities).
+
+Create a new Application.
+
+In the search bar, type Run Shell Script, then drag Run Shell Script into the workflow area.
+
+In the shell script box, enter the full path to your .sh file. For example:
+
+```bash
+~/Desktop/your_script.sh
+```
+
+Save the Automator application to your desktop with a name like Run Script. You can now double-click this application to run your .sh script.
+
+**For Linux:**
+Right-click on the desktop, select Create New Launcher (this may be different based on your desktop environment).
+
+In the launcher settings:
+
+Name: Enter a name for your script, like Run Script.
+Command: Enter the full path to your .sh file. For example:
+
+```bash
+/home/yourusername/Desktop/your_script.sh
+```
+
+Terminal: Check the box to run in a terminal if you need to see output.
+Save the launcher. You can now double-click it to execute the script.
+
 ## DataPlotter Analysis Class
 The `DataPlotter` class is responsible for the core analysis functionalities. Below are the methods available:
 
