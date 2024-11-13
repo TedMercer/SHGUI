@@ -168,6 +168,7 @@ class DataPlotter:
         """
         Interactive method for the user to click once to define the center,
         click again to define the radius, and right-click to confirm the selection.
+        Arrow keys can be used to adjust the center after initial selection.
         Shows the center and radius on the zoomed-in plot.
         """
         if vmin is not None:
@@ -177,97 +178,110 @@ class DataPlotter:
 
         self.zoom_size = zoom_size  
 
-        
         fig, (ax_main, ax_zoom) = plt.subplots(1, 2, figsize=(12, 6))
 
-        
         ax_main.imshow(self.data, cmap=self.cmap, vmin=self.vmin, vmax=self.vmax)
         ax_main.set_title('Left-click to set center, right-click to confirm')
 
-        
         ax_zoom.set_title(f'Static Zoomed View (Zoom Size: {self.zoom_size})')
 
-        
         def on_click(event):
             if event.inaxes == ax_main:
                 if event.button == 1:  
                     if self.stage == 0:  
-                        self.circle_coords = (event.xdata, event.ydata)
+                        self.circle_coords = [event.xdata, event.ydata]
                         self.radius = 1  
                         if self.circle_artist is not None:
                             self.circle_artist.remove()  
                         self.circle_artist = plt.Circle(self.circle_coords, self.radius, color='r', fill=False)
                         ax_main.add_artist(self.circle_artist)
 
-                        
-                        x0, y0 = int(event.xdata), int(event.ydata)
-                        ax_zoom.imshow(self.data, cmap=self.cmap, vmin=self.vmin, vmax=self.vmax)
-                        ax_zoom.set_xlim(x0 - self.zoom_size // 2, x0 + self.zoom_size // 2)
-                        ax_zoom.set_ylim(y0 + self.zoom_size // 2, y0 - self.zoom_size // 2) 
-
-                        
-                        ax_zoom.annotate(f"Center: ({x0:.0f}, {y0:.0f})", (x0, y0), color='white', fontsize=10)
-                        self.zoom_circle_artist = plt.Circle((x0, y0), self.radius, color='r', fill=False)
-                        ax_zoom.add_artist(self.zoom_circle_artist)
+                        update_zoom_plot()  # Update the zoomed-in plot initially
 
                         fig.canvas.draw()
                         ax_main.set_title('Right-click to confirm center and set first radius')
 
                     elif self.stage == 1:  
-                        
                         radius = np.sqrt((event.xdata - self.circle_coords[0])**2 +
-                                         (event.ydata - self.circle_coords[1])**2)
+                                        (event.ydata - self.circle_coords[1])**2)
                         self.circle_artist.set_radius(radius)  
                         self.radius = radius  
 
-                        
-                        x0, y0 = int(self.circle_coords[0]), int(self.circle_coords[1])
-                        self.zoom_circle_artist.set_radius(self.radius)
+                        update_zoom_plot()  # Update the zoomed-in plot after adjusting the radius
                         fig.canvas.draw()
 
                         ax_main.set_title('Right-click to confirm the first radius and start second circle')
 
                     elif self.stage == 2:  
-                        
                         radius = np.sqrt((event.xdata - self.circle_coords[0])**2 +
-                                         (event.ydata - self.circle_coords[1])**2)
+                                        (event.ydata - self.circle_coords[1])**2)
                         self.circle_artist.set_radius(radius)  
                         self.radius = radius  
-                        
-                        self.zoom_circle_artist.set_radius(self.radius)
+
+                        update_zoom_plot()  # Update the zoomed-in plot after adjusting the second radius
                         fig.canvas.draw()
 
                         ax_main.set_title('Right-click to confirm the second radius')
 
                 elif event.button == 3:  
                     if self.stage == 0 and self.circle_coords is not None:
-                        
                         self.circle_artist.set_edgecolor('g')  
                         fig.canvas.draw()
                         ax_main.set_title('Left-click to set first radius')
                         self.stage = 1
                     elif self.stage == 1 and self.radius > 0:
-                        
                         self.circle_artist.set_edgecolor('b')  
                         self.radius_list.append(self.radius) 
                         fig.canvas.draw()
                         ax_main.set_title('Left-click to set second radius')
                         self.stage = 2
                     elif self.stage == 2 and self.radius > 0:
- 
                         self.circle_artist.set_edgecolor('black')  
                         self.radius_list.append(self.radius) 
                         fig.canvas.draw()
 
                         fig.canvas.mpl_disconnect(cid_click)
+                        fig.canvas.mpl_disconnect(key_event_id)
                         plt.close(fig)  
                         print(f"Center: {self.circle_coords}, Radii: {self.radius_list}")
                         print("Use the `plot_final_result()` method to plot the static result.")
 
+        def on_key(event):
+            if self.circle_coords is not None:
+                if event.key == 'up':
+                    self.circle_coords[1] -= 1  
+                elif event.key == 'down':
+                    self.circle_coords[1] += 1  
+                elif event.key == 'left':
+                    self.circle_coords[0] -= 1  
+                elif event.key == 'right':
+                    self.circle_coords[0] += 1  
+
+                # Update the circle artist and zoom plot
+                self.circle_artist.set_center(self.circle_coords)
+                update_zoom_plot()  # Ensure zoom plot is updated correctly
+
+                fig.canvas.draw()
+
+        def update_zoom_plot():
+            """Update the zoomed-in plot based on the current circle coordinates."""
+            if self.circle_coords is not None:
+                x0, y0 = int(self.circle_coords[0]), int(self.circle_coords[1])
+                ax_zoom.clear()
+                ax_zoom.imshow(self.data, cmap=self.cmap, vmin=self.vmin, vmax=self.vmax)
+                ax_zoom.set_xlim(x0 - self.zoom_size // 2, x0 + self.zoom_size // 2)
+                ax_zoom.set_ylim(y0 + self.zoom_size // 2, y0 - self.zoom_size // 2)
+                ax_zoom.annotate(f"Center: ({x0:.0f}, {y0:.0f})", (x0, y0), color='white', fontsize=10)
+                self.zoom_circle_artist = plt.Circle((x0, y0), self.radius, color='r', fill=False)
+                ax_zoom.add_artist(self.zoom_circle_artist)
+                ax_zoom.set_title(f'Static Zoomed View (Zoom Size: {self.zoom_size})')
 
         cid_click = fig.canvas.mpl_connect('button_press_event', on_click)
+        key_event_id = fig.canvas.mpl_connect('key_press_event', on_key)
 
         plt.show()
+
+
 
     def plot_final_result(self):
         """Plot the static result with both circles."""
