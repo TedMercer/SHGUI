@@ -15,6 +15,7 @@ from scipy.ndimage import zoom
 from skimage.io import imread
 import pandas as pd 
 import os
+import h5py
 import sif_parser
 
 
@@ -83,6 +84,16 @@ class DataPlotter:
             plt.text(0.5, 1.05, f'Metadata from Andor CCD - {os.path.basename(file_path)}', ha='center', va='center', fontsize=14, weight='bold', transform=ax.transAxes)
             plt.tight_layout()
             plt.show()
+        elif file_path.endswith('.h5'):
+            with h5py.File(file_path, 'r') as f:
+                dataset_name = list(f.keys())[0]
+                dataset = f[dataset_name]
+                self.data = dataset[()]
+                
+                # Extracting metadata
+                metadata = dict(dataset.attrs.items())
+                self.environment = metadata
+                self._display_metadata(metadata, file_path, source='HDF5 Dataset')
         else:
             raise ValueError("Unsupported file type. Use .tiff, .txt, .csv, or .sif")
     
@@ -442,3 +453,17 @@ class DataPlotter:
                         f"{binned_intensity_sub}\t{binned_intensity_raw}\n")
 
         print(f"Data saved to {file_path}")
+    def _display_metadata(self, metadata, file_path, source=''):
+        """Display metadata in a formatted table."""
+        keys = list(metadata.keys())
+        values = list(metadata.values())
+        fig, ax = plt.subplots(figsize=(10, len(keys) * 0.3))
+        ax.axis('off')
+        table_data = [[key, str(value)] for key, value in metadata.items()]
+        table = ax.table(cellText=table_data, colLabels=['Key', 'Value'], loc='center', cellLoc='left', colWidths=[0.3, 0.7])
+        table.auto_set_font_size(False)
+        table.set_fontsize(10)
+        table.auto_set_column_width([0, 1])
+        plt.text(0.5, 1.05, f'Metadata from {source} - {os.path.basename(file_path)}', ha='center', va='center', fontsize=14, weight='bold', transform=ax.transAxes)
+        plt.tight_layout()
+        plt.show()

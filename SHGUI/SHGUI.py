@@ -171,7 +171,7 @@ class SHGAnalysisGUI(QMainWindow):
         try:
             if self.folder_path:
                 self.file_list_widget.clear()
-                files = [f for f in os.listdir(self.folder_path) if f.endswith(('.tiff', '.txt', '.csv', '.sif'))]
+                files = [f for f in os.listdir(self.folder_path) if f.endswith(('.tiff', '.txt', '.csv', '.sif', 'h5'))]
                 self.file_list_widget.addItems(files)
                 self.status_label.setText("Status: Folder contents refreshed")
             else:
