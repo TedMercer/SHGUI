@@ -166,9 +166,7 @@ data_plotter.save_txt('path/to/save/results', 'SHG analysis results')
 Contributions are welcome! Feel free to open an issue or submit a pull request.
 
 ### To Do...
-This project is a work in progress and has a lot left to go. The plan is to integrate this GUI with my already created [ELL14K-Controller](https://github.com/TedMercer/ELL14K-Controller) repository.
-This will allow for a single environment for universal control over the optics and data processing. Following this integration is the integration of the controller class with the ANDOR CCD command. 
-On the same level as the previous improvment this will give a more cohesive ecosystem.
+This project is closing in on V1.0 and feels quite robust in combination with the [SHG_Contol_Center](https://github.com/TedMercer/DeLTA_SHG_Control_Center) repo. 
 
 ## Contact
 For questions or suggestions, please contact [e.mercer@northeastern.edu].
